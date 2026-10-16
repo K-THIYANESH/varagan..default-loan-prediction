@@ -36,7 +36,7 @@ required_columns = [
     "earliest_cr_line",
     "avg_cur_bal",
     "tot_cur_bal",
-    "total_rev_hi_lim"
+    "total_rev_hi_lim",
 ]
 
 good_list = []
@@ -53,15 +53,9 @@ for chunk in pd.read_csv(
     chunksize=CHUNK_SIZE,
     low_memory=False,
 ):
+    chunk = chunk[chunk["loan_status"].isin(["Fully Paid", "Charged Off"])]
 
-    chunk = chunk[
-        chunk["loan_status"].isin(["Fully Paid", "Charged Off"])
-    ]
-
-    chunk["loan_status"] = chunk["loan_status"].map({
-        "Fully Paid": 0,
-        "Charged Off": 1
-    })
+    chunk["loan_status"] = chunk["loan_status"].map({"Fully Paid": 0, "Charged Off": 1})
 
     good = chunk[chunk.loan_status == 0]
     bad = chunk[chunk.loan_status == 1]

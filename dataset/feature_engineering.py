@@ -41,12 +41,7 @@ for col in categorical_cols:
 # ======================================================
 
 if "term" in df.columns:
-
-    df["term"] = (
-        df["term"]
-        .str.replace(" months", "", regex=False)
-        .astype("int16")
-    )
+    df["term"] = df["term"].str.replace(" months", "", regex=False).astype("int16")
 
 # ======================================================
 # CLEAN EMPLOYMENT LENGTH
@@ -63,158 +58,100 @@ EMP_MAP = {
     "7 years": 7,
     "8 years": 8,
     "9 years": 9,
-    "10+ years": 10
+    "10+ years": 10,
 }
 
-df["emp_length"] = (
-    df["emp_length"]
-    .map(EMP_MAP)
-    .fillna(0)
-    .astype("int8")
-)
+df["emp_length"] = df["emp_length"].map(EMP_MAP).fillna(0).astype("int8")
 
 # ======================================================
 # CLEAN INTEREST RATE
 # ======================================================
 
-df["int_rate"] = (
-    df["int_rate"]
-    .astype(str)
-    .str.replace("%", "", regex=False)
-)
+df["int_rate"] = df["int_rate"].astype(str).str.replace("%", "", regex=False)
 
-df["int_rate"] = pd.to_numeric(
-    df["int_rate"],
-    errors="coerce"
-)
+df["int_rate"] = pd.to_numeric(df["int_rate"], errors="coerce")
 
-df["int_rate"] = df["int_rate"].fillna(
-    df["int_rate"].median()
-)
+df["int_rate"] = df["int_rate"].fillna(df["int_rate"].median())
 
 # ======================================================
 # CLEAN REVOL UTIL
 # ======================================================
 
-df["revol_util"] = (
-    df["revol_util"]
-    .astype(str)
-    .str.replace("%", "", regex=False)
-)
+df["revol_util"] = df["revol_util"].astype(str).str.replace("%", "", regex=False)
 
-df["revol_util"] = pd.to_numeric(
-    df["revol_util"],
-    errors="coerce"
-)
+df["revol_util"] = pd.to_numeric(df["revol_util"], errors="coerce")
 
-df["revol_util"] = df["revol_util"].fillna(
-    df["revol_util"].median()
-)
+df["revol_util"] = df["revol_util"].fillna(df["revol_util"].median())
 
 # ======================================================
 # CREDIT AGE
 # ======================================================
 
 df["earliest_cr_line"] = pd.to_datetime(
-    df["earliest_cr_line"],
-    format="%b-%Y",
-    errors="coerce"
+    df["earliest_cr_line"], format="%b-%Y", errors="coerce"
 )
 
-df["credit_age"] = (
-    CURRENT_YEAR -
-    df["earliest_cr_line"].dt.year
-)
+df["credit_age"] = CURRENT_YEAR - df["earliest_cr_line"].dt.year
 
-df["credit_age"] = df["credit_age"].fillna(
-    df["credit_age"].median()
-)
+df["credit_age"] = df["credit_age"].fillna(df["credit_age"].median())
 
 # ======================================================
 # FICO SCORE
 # ======================================================
 
-df["fico_score"] = (
-    df["fico_range_low"] +
-    df["fico_range_high"]
-) / 2
+df["fico_score"] = (df["fico_range_low"] + df["fico_range_high"]) / 2
 
 # ======================================================
 # LOAN TO INCOME RATIO
 # ======================================================
 
-df["loan_income_ratio"] = (
-    df["loan_amnt"] /
-    (df["annual_inc"] + 1)
-)
+df["loan_income_ratio"] = df["loan_amnt"] / (df["annual_inc"] + 1)
 
 # ======================================================
 # EMI TO INCOME RATIO
 # ======================================================
 
-df["emi_income_ratio"] = (
-    (df["installment"] * 12) /
-    (df["annual_inc"] + 1)
-)
+df["emi_income_ratio"] = (df["installment"] * 12) / (df["annual_inc"] + 1)
 
 # ======================================================
 # AVAILABLE CREDIT RATIO
 # ======================================================
 
 if "tot_hi_cred_lim" in df.columns:
-
     credit_limit = df["tot_hi_cred_lim"]
 
 elif "total_rev_hi_lim" in df.columns:
-
     credit_limit = df["total_rev_hi_lim"]
 
 else:
-
     credit_limit = df["tot_cur_bal"]
 
-df["available_credit_ratio"] = (
-    df["tot_cur_bal"] /
-    (credit_limit + 1)
-)
+df["available_credit_ratio"] = df["tot_cur_bal"] / (credit_limit + 1)
 
 # ======================================================
 # FINANCIAL HEALTH SCORE
 # ======================================================
 
 health = (
-
     0.35 * (df["fico_score"] / 850)
-
     + 0.20 * (1 - df["loan_income_ratio"])
-
     + 0.20 * (1 - df["emi_income_ratio"])
-
     + 0.15 * (1 - (df["revol_util"] / 100))
-
     + 0.10 * (df["credit_age"] / 40)
-
 )
 
 health = health.clip(0, 1)
 
-df["financial_health_score"] = (
-    health * 100
-).round(2)
+df["financial_health_score"] = (health * 100).round(2)
 
 # ======================================================
 # DROP REDUNDANT FEATURES
 # ======================================================
 
 df.drop(
-    columns=[
-        "fico_range_low",
-        "fico_range_high",
-        "earliest_cr_line",
-        "issue_d"
-    ],
+    columns=["fico_range_low", "fico_range_high", "earliest_cr_line", "issue_d"],
     inplace=True,
-    errors="ignore"
+    errors="ignore",
 )
 
 # ======================================================
@@ -225,12 +162,7 @@ categorical_cols = df.select_dtypes(include="object").columns
 
 print("\nEncoding Categorical Columns...")
 
-df = pd.get_dummies(
-    df,
-    columns=categorical_cols,
-    drop_first=True,
-    dtype="uint8"
-)
+df = pd.get_dummies(df, columns=categorical_cols, drop_first=True, dtype="uint8")
 
 # ======================================================
 # MEMORY OPTIMIZATION
@@ -239,7 +171,6 @@ df = pd.get_dummies(
 print("Optimizing Memory...")
 
 for col in df.columns:
-
     if df[col].dtype == "float64":
         df[col] = df[col].astype("float32")
 
@@ -250,10 +181,7 @@ for col in df.columns:
 # SAVE
 # ======================================================
 
-df.to_csv(
-    OUTPUT_FILE,
-    index=False
-)
+df.to_csv(OUTPUT_FILE, index=False)
 
 print("=" * 60)
 print("Feature Engineering Completed")
@@ -269,7 +197,7 @@ features = [
     "loan_income_ratio",
     "emi_income_ratio",
     "available_credit_ratio",
-    "financial_health_score"
+    "financial_health_score",
 ]
 
 for feature in features:

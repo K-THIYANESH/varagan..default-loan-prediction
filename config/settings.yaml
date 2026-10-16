@@ -1,0 +1,45 @@
+app:
+  name: "FINScore"
+  title: "FINScore | Intelligent Financial Health & Credit Risk Assessment"
+  tagline: "Know Financial Health. Understand Credit Risk."
+  version: "1.0.0"
+
+database:
+  db_path: "finscore.db"
+
+scoring:
+  weights:
+    credit_strength: 0.25
+    debt_burden: 0.18
+    credit_utilization: 0.15
+    repayment_history: 0.15
+    income_strength: 0.12
+    loan_affordability: 0.10
+    credit_history: 0.05
+  health_categories:
+    excellent: 80
+    good: 70
+    fair: 60
+    weak: 50
+    critical: 0
+
+risk_engine:
+  bands:
+    low: [0.0, 20.0]
+    moderate: [20.0, 40.0]
+    high: [40.0, 60.0]
+    very_high: [60.0, 100.0]
+  
+policy_thresholds:
+  recommend_approval_max_risk: 25.0
+  manual_review_max_risk: 45.0
+  # Anything > 45.0 is High Risk / Decline
+
+benchmarks:
+  model_name: "XGBoost Classifier v1.0"
+  dataset_records: 200000
+  accuracy: 0.7642
+  precision: 0.7469
+  recall: 0.7990
+  f1_score: 0.7721
+  roc_auc: 0.8551
